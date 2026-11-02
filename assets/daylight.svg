@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="3840" height="2160" viewBox="0 0 1920 1080">
+<defs>
+  <linearGradient id="sky" x2=".9" y2="1"><stop stop-color="#b2e8ea"/><stop offset=".6" stop-color="#78cde6"/><stop offset="1" stop-color="#64b1db"/></linearGradient>
+  <linearGradient id="dune" x1=".1" y1="0" x2=".8" y2="1"><stop stop-color="#ffe0b4"/><stop offset=".42" stop-color="#ffc38e"/><stop offset="1" stop-color="#ed9977"/></linearGradient>
+  <linearGradient id="grass" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#c4e3b8"/><stop offset=".55" stop-color="#8cc9a8"/><stop offset="1" stop-color="#54b9aa"/></linearGradient>
+  <linearGradient id="water" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#79d5df"/><stop offset="1" stop-color="#38a7ca"/></linearGradient>
+</defs>
+<path fill="url(#sky)" d="M0 0h1920v1080H0z"/>
+<path fill="url(#grass)" d="M1040 0h880v765c-185-29-254-119-325-213C1454 365 1303 207 1040 0Z"/>
+<path fill="#d5ecc4" opacity=".7" d="M1383 0c64 264 239 482 537 594v63C1588 533 1375 291 1318 0Z"/>
+<path fill="url(#dune)" d="M0 458c260-68 451-23 621 90 254 169 548 128 775 251 142 77 315 139 524 106v175H0Z"/>
+<path fill="#ffe3b7" opacity=".85" d="M0 483c210-63 405-34 605 98 227 150 430 130 666 200 209 61 378 190 649 159v31c-278 23-447-87-657-153-234-73-455-58-677-205C386 482 205 460 0 512Z"/>
+<path fill="url(#water)" d="M0 844c196-73 368-85 569-46 270 53 429 148 626 282H0Z"/>
+</svg>

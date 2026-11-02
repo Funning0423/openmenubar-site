@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://funning0423.github.io/openmenubar-site/sitemap.xml

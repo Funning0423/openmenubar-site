@@ -15,3 +15,5 @@
 #product-film::cue{color:#1d1d1f;background-color:transparent;text-shadow:0 1px 2px rgba(255,255,255,.95),0 0 4px rgba(255,255,255,.85)}
 #product-film.film-captions-enhanced::cue{color:transparent;background-color:transparent;text-shadow:none}
 @media(max-width:480px){.film-caption-text{border-radius:9px}}
+
+.film-meta{flex-wrap:wrap}.film-downloads{flex-wrap:wrap;gap:16px;max-width:100%;flex:0 1 auto}.film-resolution{display:inline-flex;align-items:center;gap:8px;font-size:14px;color:#48484d}.film-resolution select{font:inherit;color:#1d1d1f;background:#fff;border:1px solid #b8b8bf;border-radius:8px;padding:8px;max-width:100%}.film-resolution select:focus-visible{outline:3px solid #0071e3;outline-offset:3px}

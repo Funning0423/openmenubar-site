@@ -13,7 +13,8 @@
   const quality = document.getElementById('film-quality');
   const picker = document.getElementById('film-resolution');
   const mirrorBases = {
-    'funning0423.github.io': 'https://openmenubar-blc5zxcc.edgeone.dev/',
+    // Both paths at this revision contain the same bytes as the Pages encodes.
+    'funning0423.github.io': 'https://raw.githubusercontent.com/Funning0423/openmenubar-site/2ddfd0235d9a9397423f4f20fcf8f4745c1724c9/',
     'openmenubar-blc5zxcc.edgeone.dev': 'https://funning0423.github.io/openmenubar-site/'
   };
   const mirror = mirrorBases[location.hostname];
@@ -113,10 +114,11 @@
   const armWatchdog = () => {
     cancelWatchdog();
     if (!wantsPlay || document.hidden || !inViewport()) return;
+    const timeout = video.seeking || (switching && resumeTime > 0) ? 25000 : 10000;
     watchdog = setTimeout(() => {
       watchdog = null;
       if (wantsPlay && !document.hidden && inViewport()) advanceSource();
-    }, 10000);
+    }, timeout);
   };
   const playNative = id => {
     // The first play() runs directly in the trusted click/change event, including iOS.

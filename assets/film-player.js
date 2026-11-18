@@ -40,7 +40,17 @@
     if (quality) quality.textContent = candidate.tier === '4k' ? '4K · 90fps' : '1080p · 60fps';
     if (picker) picker.value = candidate.tier;
   };
-  selectAsset(candidates('hd')[0]);
+  const defaultResolution = () => {
+    const connection = window.navigator?.connection;
+    if (connection?.saveData || ['slow-2g', '2g', '3g'].includes(connection?.effectiveType)) return 'hd';
+    const displayWidth = video.clientWidth * (window.devicePixelRatio || 1);
+    return displayWidth > 1920 ? '4k' : 'hd';
+  };
+  const selectDefault = () => selectAsset(candidates(defaultResolution())[0]);
+  selectDefault();
+  window.addEventListener('resize', () => {
+    if (state === 'idle') selectDefault();
+  });
   // Native CC still owns selection; the DOM layer supplies a real glass radius.
   // Keep the source track accessible and insert cue text without interpreting HTML.
   const captions = document.createElement('div');
@@ -88,7 +98,7 @@
   const reset = () => {
     requestID++; wantsPlay = false; switching = false; cancelWatchdog();
     video.pause(); video.removeAttribute('src');
-    selectAsset(candidates('hd')[0]);
+    selectDefault();
     video.controls = false; video.preload = 'none'; video.load();
     overlay.hidden = false; button.disabled = false;
     button.innerHTML = '<span aria-hidden="true">▷</span> 播放 ' + (video.dataset.durationLabel || '约 69 秒') + '短片';
@@ -122,9 +132,10 @@
   const loadCandidate = () => {
     const id = ++requestID;
     cancelWatchdog(); switching = true; selectAsset(queue[candidateIndex]);
-    setState('loading'); video.controls = true; video.preload = 'metadata';
+    setState('loading'); video.controls = true;
     overlay.hidden = true; button.disabled = false;
-    video.src = queue[candidateIndex].url; video.load();
+    video.src = queue[candidateIndex].url;
+    video.preload = 'metadata'; video.load();
     if (wantsPlay) { playNative(id); armWatchdog(); }
   };
   const advanceSource = () => {
@@ -146,10 +157,10 @@
     queue = candidates(resolution); candidateIndex = 0;
     message('正在载入短片…'); loadCandidate();
   };
-  // All devices start with a native, progressive 1080p60 source. No full-file Blob gate.
+  // Select the initial progressive source at playback size, within the trusted gesture.
   video.controls = false; overlay.hidden = false; setState('idle');
   button.addEventListener('click', event => {
-    if (event.isTrusted) start(picker?.value || 'hd');
+    if (event.isTrusted) start(state === 'idle' ? defaultResolution() : picker?.value || defaultResolution());
   });
   picker?.addEventListener('change', event => {
     if (event.isTrusted) start(picker.value);

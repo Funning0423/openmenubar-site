@@ -1,11 +1,3 @@
-.film-start{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none;background:linear-gradient(0deg,#0002,#0000 60%)}
-.film-start[hidden]{display:none}
-#film-play{pointer-events:auto;display:inline-flex;align-items:center;gap:10px;min-height:48px;border:1px solid #ffffff70;border-radius:99px;padding:14px 23px;background:#fff;color:#1d1d1f;font:600 16px/1.25 -apple-system,BlinkMacSystemFont,sans-serif;cursor:pointer;box-shadow:0 3px 18px #0002}
-#film-play:focus-visible{outline:3px solid #0071e3;outline-offset:5px}
-#film-play:disabled{cursor:wait;background:#ececee;color:#48484d}
-#film-play span{font-size:20px;line-height:1}
-.film-load-status{margin:12px 0 0;font-size:13px;line-height:1.6;color:#3d3d42}
-@media(max-width:480px){#film-play{min-height:44px;padding:12px 18px;font-size:14px}}
 /* Light, genuinely rounded inline captions. Native VTT and CC remain available. */
 .film-shell{container-type:inline-size}
 .film-captions{position:absolute;left:10%;right:10%;bottom:6%;z-index:2;display:flex;justify-content:center;align-items:flex-end;pointer-events:none;text-align:center;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;font-size:clamp(11px,1.4vw,18px);font-size:clamp(11px,1.7cqw,18px);line-height:1.45;font-weight:500;color:#1d1d1f}
@@ -16,4 +8,53 @@
 #product-film.film-captions-enhanced::cue{color:transparent;background-color:transparent;text-shadow:none}
 @media(max-width:480px){.film-caption-text{border-radius:9px}}
 
-.film-meta{flex-wrap:wrap}.film-downloads{flex-wrap:wrap;gap:16px;max-width:100%;flex:0 1 auto}.film-resolution{display:inline-flex;align-items:center;gap:8px;font-size:14px;color:#48484d}.film-resolution select{font:inherit;color:#1d1d1f;background:#fff;border:1px solid #b8b8bf;border-radius:8px;padding:8px;max-width:100%}.film-resolution select:focus-visible{outline:3px solid #0071e3;outline-offset:3px}
+/* One title and one surface. Keep file actions beside the player, outside its artwork. */
+#film { background: #fff; padding-block: clamp(48px, 7vw, 106px) clamp(32px, 5vw, 72px); }
+.film-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 20px 32px; margin-bottom: clamp(20px, 3vw, 38px); }
+.film-heading h2 { margin: 0; font-size: clamp(35px, 5.35vw, 76px); line-height: 1.13; font-weight: 650; letter-spacing: -.055em; color: #1d1d1f; }
+.film-heading p { margin: 0; color: #626267; font-size: 14px; line-height: 1.5; white-space: nowrap; }
+.film-heading p span { margin-inline: .25em; }
+#film .film-shell { border-radius: clamp(10px, 1.45vw, 21px); }
+#film .film-inner > .film-shell { outline: 1px solid #dcdce0; outline-offset: -1px; }
+.film-start { position: absolute; inset: 0; display: flex; align-items: flex-end; padding: clamp(12px, 2.2vw, 32px); pointer-events: none; }
+.film-start[hidden] { display: none; }
+#film-play { display: inline-flex; align-items: center; justify-content: center; gap: 10px; border: 0; border-radius: 99px; background: #0066cc; color: #fff; padding: 0 21px; min-height: 46px; font: 600 15px/1 -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif; cursor: pointer; pointer-events: auto; }
+#film-play::after { content: ""; position: absolute; inset: 0; border-radius: inherit; }
+#film-play:hover { background: #0058b1; }
+#film-play:focus-visible, .film-resolution select:focus-visible, .film-file-options summary:focus-visible, .film-archive summary:focus-visible { outline: 3px solid #0071e3; outline-offset: 3px; }
+#film-play:disabled { cursor: wait; background: #48484d; }
+.film-triangle { width: 0; height: 0; border-top: 5px solid transparent; border-bottom: 5px solid transparent; border-left: 8px solid currentColor; }
+.film-load-status { margin: 12px 0 0; color: #48484d; font-size: 14px; line-height: 1.6; }
+.film-toolbar { position: relative; display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; margin-top: 10px; min-height: 46px; }
+.film-resolution { display: inline-flex; align-items: center; gap: 8px; color: #606069; font-size: 14px; min-height: 44px; }
+.film-resolution select { min-height: 38px; max-width: 100%; margin: 0; color: #1d1d1f; font: inherit; font-weight: 550; border: 1px solid #d7d7db; border-radius: 6px; background: #fff; padding: 3px 6px; }
+.film-file-options { text-align: end; }
+.film-file-options summary, .film-archive summary { display: inline-flex; align-items: center; gap: 7px; cursor: pointer; min-height: 44px; list-style: none; font-size: 14px; line-height: 1.3; }
+.film-file-options summary::-webkit-details-marker, .film-archive summary::-webkit-details-marker { display: none; }
+.film-file-options summary { color: #0066cc; }
+.film-file-options summary::after, .film-archive summary::after { content: ""; width: 6px; height: 6px; border: solid currentColor; border-width: 0 1.5px 1.5px 0; transform: translateY(-1.5px) rotate(45deg); margin-inline: 3px; }
+.film-file-options[open] summary::after, .film-archive[open] summary::after { transform: translateY(1.5px) rotate(225deg); }
+.film-file-links { display: grid; gap: 1px; justify-items: end; }
+.film-file-links a, .film-archive .film-downloads a { display: inline-flex; align-items: center; gap: 6px; color: #0066cc; min-height: 40px; font-size: 14px; }
+.film-file-links a:hover, .film-archive a:hover { text-decoration: underline; text-underline-offset: .2em; }
+.film-archive { margin-top: 12px; padding-top: 6px; border-top: 1px solid #dedee1; }
+.film-archive summary { color: #414146; }
+.film-archive summary span { color: #6a6a70; font-size: 13px; }
+.film-archive video { display: block; width: 100%; height: auto; }
+.film-archive .film-meta { margin: 12px 0 0; }
+.film-archive .film-downloads { align-items: baseline; flex-wrap: wrap; }
+.film-archive .film-resolution[hidden] { display: none; }
+@media (max-width: 600px) {
+  .film-heading { display: grid; gap: 6px; margin-bottom: 16px; }
+  .film-heading h2 { font-size: clamp(30px, 8.1vw, 43px); }
+  .film-heading p, .film-resolution, .film-file-options summary { font-size: 13px; }
+  .film-toolbar { gap: 6px; margin-top: 6px; }
+  .film-start { padding: 8px 10px; }
+  #film-play { min-height: 32px; font-size: 13px; gap: 7px; padding-inline: 12px; }
+  .film-resolution { gap: 5px; }
+  .film-archive { margin-top: 6px; }
+}
+
+.film-chapter {display:inline-block;appearance:none;background:transparent;border:0;padding:3px 0;color:#0063b9;cursor:pointer;font:inherit;line-height:inherit}
+.film-chapter:hover {text-decoration:underline;text-underline-offset:3px}
+.film-chapter:focus-visible {outline:2px solid #0066cc;outline-offset:3px;border-radius:3px}

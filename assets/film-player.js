@@ -14,7 +14,7 @@
   const picker = document.getElementById('film-resolution');
   const mirrorBases = {
     // Both paths at this revision contain the same bytes as the Pages encodes.
-    'funning0423.github.io': 'https://raw.githubusercontent.com/Funning0423/openmenubar-site/2ddfd0235d9a9397423f4f20fcf8f4745c1724c9/',
+    'funning0423.github.io': 'https://raw.githubusercontent.com/Funning0423/openmenubar-site/3780a38314785eb87fdaa15a7ab06b6c4341eff2/',
     'openmenubar-blc5zxcc.edgeone.dev': 'https://funning0423.github.io/openmenubar-site/'
   };
   const mirror = mirrorBases[location.hostname];
@@ -152,15 +152,28 @@
     if (++candidateIndex >= queue.length) { failed(); return; }
     message('正在切换播放线路…'); loadCandidate();
   };
-  const start = resolution => {
+  const start = (resolution, startAt) => {
     delete video.dataset.lastMediaError; delete video.dataset.lastMediaErrorMessage;
     visible = inViewport(); wantsPlay = visible && !document.hidden;
-    resumeTime = !video.ended && state === 'ready' ? video.currentTime : 0;
+    resumeTime = startAt ?? (!video.ended && state === 'ready' ? video.currentTime : 0);
     queue = candidates(resolution); candidateIndex = 0;
     message('正在载入短片…'); loadCandidate();
   };
   // Select the initial progressive source at playback size, within the trusted gesture.
   video.controls = false; overlay.hidden = false; setState('idle');
+  const chapter = document.querySelector('[data-film-chapter]');
+  chapter?.addEventListener('click', () => {
+    const at = Number(chapter.dataset.filmChapter);
+    video.scrollIntoView({block: 'center', behavior: 'instant'});
+    const resolution = state === 'idle' ? defaultResolution() : picker?.value || defaultResolution();
+    if (state === 'ready' && video.readyState >= 1) {
+      wantsPlay = true;
+      video.currentTime = at;
+      playNative(requestID);
+    } else {
+      start(resolution, at);
+    }
+  });
   button.addEventListener('click', event => {
     if (event.isTrusted) start(state === 'idle' ? defaultResolution() : picker?.value || defaultResolution());
   });

@@ -116,7 +116,7 @@
     <button class="film-chapter" type="button" data-film-chapter="24.54">跳到换壁纸 <span aria-hidden="true">▷</span></button>
   </div>
   <div class="film-shell reveal">
-    <video id="product-film" data-opening-duration="4.173857" data-ai-end="21.905286" data-duration-label="约 50 秒" controls playsinline webkit-playsinline preload="none" poster="assets/wallpaper-poster.jpg?v=328a9021fe" aria-label="OpenMenuBar 宣传片。打开悬浮网页预约会议室，双击更换首页壁纸，再滑过书签、切换网页，看土星环影从顶栏下穿过。"><source src="assets/openmenubar-wallpaper-hd.mp4?v=0477f7392b" data-desktop-src="assets/openmenubar-wallpaper-4k.mp4?v=a91fa8672d" data-mobile-src="assets/openmenubar-wallpaper-hd.mp4?v=0477f7392b" type="video/mp4"><track kind="subtitles" src="assets/wallpaper.zh.vtt?v=1feee5fb19" srclang="zh" label="中文字幕"><p>你的浏览器暂不支持视频，请<a href="assets/openmenubar-wallpaper-4k.mp4?v=a91fa8672d" download>下载产品短片</a>。</p></video>
+    <video id="product-film" data-opening-duration="4.173857" data-ai-end="21.905286" data-duration-label="约 50 秒" controls playsinline webkit-playsinline preload="none" poster="assets/wallpaper-poster.jpg?v=328a9021fe" aria-label="OpenMenuBar 宣传片。打开悬浮网页预约会议室，双击更换首页壁纸，再滑过书签、切换网页，看土星环影从顶栏下穿过。"><source src="assets/openmenubar-wallpaper-720p.mp4?v=1908203c76" data-desktop-src="assets/openmenubar-wallpaper-4k.mp4?v=a91fa8672d" data-hd-src="assets/openmenubar-wallpaper-hd.mp4?v=0477f7392b" data-mobile-src="assets/openmenubar-wallpaper-720p.mp4?v=1908203c76" data-light-src="assets/openmenubar-wallpaper-480p.mp4?v=930f742497" type="video/mp4"><track kind="subtitles" src="assets/wallpaper.zh.vtt?v=1feee5fb19" srclang="zh" label="中文字幕"><p>你的浏览器暂不支持视频，请<a href="assets/openmenubar-wallpaper-4k.mp4?v=a91fa8672d" download>下载产品短片</a>。</p></video>
     <div class="film-start" hidden>
       <button id="film-play" type="button" aria-label="播放约 50 秒宣传片"><span class="film-triangle" aria-hidden="true"></span>播放宣传片</button>
     </div>
@@ -124,11 +124,12 @@
   <p id="film-load-status" class="film-load-status" role="status" aria-live="polite" hidden></p>
   <div class="film-toolbar">
     <span id="film-quality" hidden aria-hidden="true"></span>
-    <label class="film-resolution"><select id="film-resolution" aria-label="视频清晰度"><option value="hd" selected>1080p</option><option value="4k">4K</option></select></label>
+    <label class="film-resolution"><select id="film-resolution" aria-label="视频清晰度"><option value="light">480p</option><option value="mobile" selected>720p</option><option value="hd">1080p</option><option value="4k">4K</option></select></label>
     <details class="film-file-options">
       <summary>视频文件</summary>
       <div class="film-file-links">
         <a href="assets/openmenubar-wallpaper-4k.mp4?v=a91fa8672d" download="OpenMenuBar-Wallpaper-4K90.mp4">下载 4K 视频 <span aria-hidden="true">↓</span></a>
+        <a href="assets/openmenubar-wallpaper-480p.mp4?v=930f742497">省流播放 · 480p</a>
         <a href="assets/openmenubar-wallpaper-hd.mp4?v=0477f7392b">直接播放 1080p <span aria-hidden="true">↗</span></a>
       </div>
       <details id="full-film" class="film-archive">
@@ -206,4 +207,4 @@ document.querySelectorAll('[data-dock]').forEach(rail=>{
 
 document.querySelector('.copy-email').addEventListener('click',async()=>{const status=document.querySelector('.copy-status');try{await navigator.clipboard.writeText('shineanl@icloud.com');status.textContent='邮箱已复制：shineanl@icloud.com';}catch{status.textContent='请选中并复制邮箱：shineanl@icloud.com';}});
 </script>
-<script src="assets/film-player.js?v=764b1ab637"></script><script src="assets/orb-demo.js?v=clean1"></script><script src="assets/moon-rail.js?v=4876f16afd"></script><script src="assets/moon-preview.js?v=2d7874aa7e"></script><script src="assets/scroll-rendering.js?v=13"></script><script>if(new URLSearchParams(location.search).get("video-audit")==="1"){const audit=document.createElement("script");audit.src="assets/film-audit.js?v=1";document.head.append(audit);}</script></body></html>
+<script src="assets/film-player.js?v=a0f5d1f8d5"></script><script src="assets/orb-demo.js?v=clean1"></script><script src="assets/moon-rail.js?v=4876f16afd"></script><script src="assets/moon-preview.js?v=2d7874aa7e"></script><script src="assets/scroll-rendering.js?v=13"></script><script>if(new URLSearchParams(location.search).get("video-audit")==="1"){const audit=document.createElement("script");audit.src="assets/film-audit.js?v=1";document.head.append(audit);}</script></body></html>

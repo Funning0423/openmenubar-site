@@ -7,14 +7,24 @@
   const status = document.getElementById('film-load-status');
   const source = video?.querySelector('source');
   if (!video || !shell || !overlay || !button || !status || !source) return;
-  const desktopAsset = new URL(source.dataset.desktopSrc || source.src, location.href);
-  const mobileAsset = new URL(source.dataset.mobileSrc || source.src, location.href);
-  if (desktopAsset.origin !== location.origin || mobileAsset.origin !== location.origin) return;
+  const assets = {
+    '4k': new URL(source.dataset.desktopSrc || source.src, location.href),
+    hd: new URL(source.dataset.hdSrc || source.src, location.href),
+    mobile: new URL(source.dataset.mobileSrc || source.src, location.href),
+    light: new URL(source.dataset.lightSrc || source.src, location.href)
+  };
+  if (Object.values(assets).some(asset => asset.origin !== location.origin)) return;
+  const tiers = {
+    '4k': {label: '4K · 90fps', id: '4k90', fallback: ['4k', 'hd', 'mobile', 'light']},
+    hd: {label: '1080p · 60fps', id: '1080p60', fallback: ['hd', 'mobile', 'light']},
+    mobile: {label: '720p', id: '720p30', fallback: ['mobile', 'light']},
+    light: {label: '480p', id: '480p30', fallback: ['light']}
+  };
   const quality = document.getElementById('film-quality');
   const picker = document.getElementById('film-resolution');
   const mirrorBases = {
     // Both paths at this revision contain the same bytes as the Pages encodes.
-    'funning0423.github.io': 'https://raw.githubusercontent.com/Funning0423/openmenubar-site/3780a38314785eb87fdaa15a7ab06b6c4341eff2/',
+    'funning0423.github.io': 'https://raw.githubusercontent.com/Funning0423/openmenubar-site/18998957987a12605c3d4f15764be900dc28a739/',
     'openmenubar-blc5zxcc.edgeone.dev': 'https://funning0423.github.io/openmenubar-site/'
   };
   const mirror = mirrorBases[location.hostname];
@@ -25,25 +35,31 @@
   const inViewport = () => { const r = video.getBoundingClientRect(); return r.bottom > 0 && r.top < innerHeight && r.right > 0 && r.left < innerWidth; };
   const cancelWatchdog = () => { clearTimeout(watchdog); watchdog = null; };
   const candidates = resolution => {
-    const result = [];
-    for (const tier of resolution === '4k' ? ['4k', 'hd'] : ['hd']) {
-      const asset = tier === '4k' ? desktopAsset : mobileAsset;
-      result.push({url:asset.href, tier});
-      if (mirror) result.push({url:new URL('assets/' + asset.pathname.split('/').pop() + asset.search, mirror).href, tier});
-    }
-    return result;
+    const fallback = tiers[resolution].fallback;
+    const primary = fallback.map(tier => ({url: assets[tier].href, tier}));
+    if (!mirror) return primary;
+    const mirrored = primary.map(({url, tier}) => {
+      const asset = new URL(url);
+      return {url: new URL('assets/' + asset.pathname.split('/').pop() + asset.search, mirror).href, tier};
+    });
+    // A mobile visitor on a slow network should get the lighter same-site video
+    // before retrying the higher bitrate on another host.
+    if (resolution === 'mobile' || resolution === 'light') return [...primary, mirrored.at(-1), ...mirrored.slice(0,-1)];
+    return [primary[0], mirrored[0], ...primary.slice(1), ...mirrored.slice(1)];
   };
   const selectAsset = candidate => {
+    const {id, label} = tiers[candidate.tier];
     video.dataset.playbackRoute = 'native-progressive';
-    video.dataset.quality = candidate.tier === '4k' ? '4k90' : '1080p60';
+    video.dataset.quality = id;
     video.dataset.selectedSource = candidate.url;
     source.src = candidate.url;
-    if (quality) quality.textContent = candidate.tier === '4k' ? '4K · 90fps' : '1080p · 60fps';
+    if (quality) quality.textContent = label;
     if (picker) picker.value = candidate.tier;
   };
   const defaultResolution = () => {
     const connection = window.navigator?.connection;
-    if (connection?.saveData || ['slow-2g', '2g', '3g'].includes(connection?.effectiveType)) return 'hd';
+    if (connection?.saveData || ['slow-2g', '2g', '3g'].includes(connection?.effectiveType)) return 'light';
+    if (matchMedia('(max-width: 767px), (hover: none) and (pointer: coarse)').matches) return 'mobile';
     const displayWidth = video.clientWidth * (window.devicePixelRatio || 1);
     return displayWidth > 1920 ? '4k' : 'hd';
   };
@@ -109,12 +125,14 @@
     cancelWatchdog(); wantsPlay = false; switching = false; setState('error');
     video.pause(); video.controls = false;
     overlay.hidden = false; button.disabled = false; button.textContent = '重新加载短片';
-    message('短片暂时未能加载。可重试，或使用下方备用站点播放。'); syncCaptions();
+    message('短片暂时未能加载。可重试，或使用「视频文件」中的省流版。'); syncCaptions();
   };
   const armWatchdog = () => {
     cancelWatchdog();
     if (!wantsPlay || document.hidden || !inViewport()) return;
-    const timeout = video.seeking || (switching && resumeTime > 0) ? 25000 : 10000;
+    const compact = ['mobile', 'light'].includes(queue[candidateIndex]?.tier);
+    const seeking = video.seeking || (switching && resumeTime > 0);
+    const timeout = compact ? (seeking ? 12000 : 6000) : (seeking ? 25000 : 10000);
     watchdog = setTimeout(() => {
       watchdog = null;
       if (wantsPlay && !document.hidden && inViewport()) advanceSource();
@@ -198,6 +216,9 @@
       if (!video.seeking) message('正在缓冲短片…');
       armWatchdog();
     }
+  });
+  video.addEventListener('stalled', () => {
+    if (watchdog === null && (state === 'ready' || state === 'loading') && video.readyState < 3) armWatchdog();
   });
   video.addEventListener('seeking', () => { if (wantsPlay) armWatchdog(); });
   video.addEventListener('seeked', () => { if (!video.paused && video.readyState >= 3) cancelWatchdog(); });

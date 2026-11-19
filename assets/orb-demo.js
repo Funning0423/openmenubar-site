@@ -17,7 +17,6 @@
   const sideButton = document.getElementById('orb-side');
   const toggleButton = document.getElementById('orb-toggle');
   const status = document.getElementById('orb-demo-status');
-  const invitation = stage.querySelector('.orb-invitation');
   const reduce = matchMedia('(prefers-reduced-motion: reduce)');
   const mobile = matchMedia('(max-width: 760px)');
   const contents = [...shell.children];
@@ -50,7 +49,6 @@
 
   function positionOrb(x = geometry.x, y = geometry.y) {
     orb.style.transform = transformAt(x, y);
-    invitation.style.top = `${y + (geometry.size - 24) / 2}px`;
   }
 
   // Read the scene once per user action or resize; pointermove uses cached geometry.
@@ -151,7 +149,7 @@
     shell.setAttribute('aria-hidden', 'false');
     reading.scrollTop = savedScrollTop;
     updateControls();
-    status.textContent = pinned ? '已钉住。对照 AI 的清单，继续编辑工作文稿。' : 'AI 已展开。点回工作文稿，窗口就会收起。';
+    status.textContent = pinned ? '已钉住窗口。' : '已展开。点回文稿可收起。';
     if (focus) reading.focus({ preventScroll: true });
     if (!canAnimate()) { settle(); return; }
     const token = generation;
@@ -183,7 +181,7 @@
     shell.inert = true;
     shell.setAttribute('aria-hidden', 'true');
     updateControls();
-    status.textContent = 'AI 已收好。再次展开，对话与阅读位置还在。';
+    status.textContent = '已收起。';
     if (!canAnimate()) { settle(); return; }
     const token = generation;
     setState('closing');
@@ -288,7 +286,7 @@
     scene = next;
     updateControls();
     layout();
-    status.textContent = next === 'fullscreen' ? '切到全屏工作页。悬浮 AI 仍在手边。' : '回到桌面。文稿和对话都保留着。';
+    status.textContent = next === 'fullscreen' ? '已切换到全屏。' : '已回到桌面。';
   }
   function setPinned(next) {
     pinned = Boolean(next);

@@ -13,16 +13,35 @@
   let active;
   button.parentElement.hidden = false;
 
-  async function fetchFile(path, signal) {
+  async function fetchFile(path, signal, retry = false) {
     const request = new AbortController();
     const abort = () => request.abort();
     if (signal.aborted) abort();
     signal.addEventListener('abort', abort, {once: true});
-    const timer = setTimeout(abort, 22000);
+    let timer;
+    const watchProgress = () => {
+      clearTimeout(timer);
+      timer = setTimeout(abort, 22000);
+    };
+    watchProgress();
     try {
-      const response = await fetch(path, {signal: request.signal});
+      const response = await fetch(retry ? `${path}?retry=1` : path, {signal: request.signal});
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      return await response.arrayBuffer();
+      watchProgress();
+      if (!response.body?.getReader) return await response.arrayBuffer();
+      const reader = response.body.getReader();
+      const pieces = [];
+      try {
+        for (;;) {
+          const {value, done} = await reader.read();
+          if (done) break;
+          watchProgress();
+          pieces.push(value);
+        }
+      } finally {
+        reader.releaseLock();
+      }
+      return await new Blob(pieces).arrayBuffer();
     } finally {
       clearTimeout(timer);
       signal.removeEventListener('abort', abort);
@@ -133,7 +152,7 @@
         if (!cached.has(path)) {
           const request = fetchFile(path, signal).catch(error => {
             if (signal.aborted) throw error;
-            return fetchFile(path, signal);
+            return fetchFile(path, signal, true);
           });
           cached.set(path, request.catch(error => { cached.delete(path); throw error; }));
         }

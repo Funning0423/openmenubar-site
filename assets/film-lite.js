@@ -18,7 +18,7 @@
     const abort = () => request.abort();
     if (signal.aborted) abort();
     signal.addEventListener('abort', abort, {once: true});
-    const timer = setTimeout(abort, 45000);
+    const timer = setTimeout(abort, 22000);
     try {
       const response = await fetch(path, {signal: request.signal});
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -29,7 +29,7 @@
     }
   }
 
-  function nextEvent(target, event, signal, action) {
+  function nextEvent(target, event, signal, action, timeout = 9000) {
     return new Promise((resolve, reject) => {
       const finish = (error) => {
         clearTimeout(timer);
@@ -41,7 +41,7 @@
       };
       const success = () => finish();
       const failure = () => finish(new Error(`Waiting for ${event} failed`));
-      const timer = setTimeout(failure, 9000);
+      const timer = setTimeout(failure, timeout);
       if (signal.aborted) { failure(); return; }
       target.addEventListener(event, success, {once: true});
       target.addEventListener('error', failure, {once: true});
@@ -130,18 +130,36 @@
       }
       const cached = new Map();
       const get = path => {
-        if (!cached.has(path)) cached.set(path, fetchFile(path, signal).catch(error => { cached.delete(path); throw error; }));
+        if (!cached.has(path)) {
+          const request = fetchFile(path, signal).catch(error => {
+            if (signal.aborted) throw error;
+            return fetchFile(path, signal);
+          });
+          cached.set(path, request.catch(error => { cached.delete(path); throw error; }));
+        }
         return cached.get(path);
       };
       const Media = [window.MediaSource, window.ManagedMediaSource].find(Type => Type?.isTypeSupported(codec));
+      let resumeAt = 0;
       if (Media) {
         try { await stream(run, Media, get); return; }
-        catch (error) { if (signal.aborted || run.ready) throw error; }
+        catch (error) {
+          if (signal.aborted) throw error;
+          resumeAt = video.currentTime;
+          video.pause();
+          run.ready = false;
+          button.hidden = false;
+          button.disabled = true;
+        }
       }
       status.textContent = '正在下载 1080p 短片…';
       const pieces = [];
       for await (const bytes of orderedParts(get)) pieces.push(bytes);
-      attach(run, new Blob(pieces, {type: mediaType}));
+      await nextEvent(video, 'loadedmetadata', signal, () => {
+        video.preload = 'metadata';
+        attach(run, new Blob(pieces, {type: mediaType}));
+      }, 20000);
+      if (resumeAt > 0) video.currentTime = resumeAt;
       play(run);
     } catch {
       if (signal.aborted) return;

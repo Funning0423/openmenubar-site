@@ -172,8 +172,11 @@
         }
       }
       status.textContent = '正在下载 1080p 短片…';
+      const index = get(directory + 'index.bin');
+      index.catch(() => {});
       const pieces = [];
       for await (const bytes of orderedParts(get)) pieces.push(bytes);
+      pieces.push(await index);
       await nextEvent(video, 'loadedmetadata', signal, () => {
         video.preload = 'metadata';
         attach(run, new Blob(pieces, {type: mediaType}));

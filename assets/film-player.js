@@ -6,6 +6,7 @@
   const button = document.getElementById('film-play');
   const status = document.getElementById('film-load-status');
   const source = video?.querySelector('source');
+  const webFallback = document.getElementById('film-web-fallback');
   if (!video || !shell || !overlay || !button || !status || !source) return;
   const assets = {
     '4k': new URL(source.dataset.desktopSrc || source.src, location.href),
@@ -30,7 +31,11 @@
   const mirror = mirrorBases[location.hostname];
   let state = 'idle', requestID = 0, watchdog = null, queue = [], candidateIndex = 0;
   let visible = false, wantsPlay = false, resumeTime = 0, switching = false;
-  const setState = value => { state = value; shell.dataset.filmState = value; };
+  const setState = value => {
+    state = value;
+    shell.dataset.filmState = value;
+    if (webFallback) webFallback.hidden = value !== 'error';
+  };
   const message = text => { status.textContent = text; status.hidden = !text; };
   const inViewport = () => { const r = video.getBoundingClientRect(); return r.bottom > 0 && r.top < innerHeight && r.right > 0 && r.left < innerWidth; };
   const cancelWatchdog = () => { clearTimeout(watchdog); watchdog = null; };
@@ -125,7 +130,7 @@
     cancelWatchdog(); wantsPlay = false; switching = false; setState('error');
     video.pause(); video.controls = false;
     overlay.hidden = false; button.disabled = false; button.textContent = '重新加载短片';
-    message('短片暂时未能加载。可重试，或使用「视频文件」中的省流版。'); syncCaptions();
+    message('短片暂时未能加载。可重试或打开备用播放。'); syncCaptions();
   };
   const armWatchdog = () => {
     cancelWatchdog();

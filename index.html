@@ -53,7 +53,7 @@
 <link rel="canonical" href="https://funning0423.github.io/openmenubar-site/"><meta property="og:url" content="https://funning0423.github.io/openmenubar-site/"><meta property="og:type" content="website"><meta property="og:locale" content="zh_CN"><meta property="og:image" content="https://funning0423.github.io/openmenubar-site/assets/wallpaper-poster.jpg?v=328a9021fe"><meta property="og:image:alt" content="OpenMenuBar 产品短片：随手唤出 AI，钉住窗口，继续工作。"><meta name="twitter:card" content="summary_large_image"><link rel="stylesheet" href="refresh.css?v=16"><link rel="stylesheet" href="assets/film-player.css?v=08c5ec2693">
 <link rel="stylesheet" href="assets/orb-demo.css?v=54">
 <link rel="stylesheet" href="assets/moon-preview.css?v=f412bdb12c">
-<link rel="stylesheet" href="assets/homepage-layout.css?v=1">
+<link rel="stylesheet" href="assets/homepage-layout.css?v=2">
 </head>
 <body id="top">
 <noscript><style>.copy-email,[data-orb-open],.orb-scene-controls,.orb-demo-controls,.orb-launcher,.orb-invitation,.orb-pin-help{display:none}</style><p class="noscript-notice wrap">当前为静态预览。仍可观看短片、阅读功能和通过邮箱申请体验。</p></noscript>
@@ -122,6 +122,7 @@
     </div>
   </div>
   <p id="film-load-status" class="film-load-status" role="status" aria-live="polite" hidden></p>
+  <a id="film-web-fallback" class="text-link" href="film-lite.html" hidden>打开备用播放</a>
   <div class="film-toolbar">
     <span id="film-quality" hidden aria-hidden="true"></span>
     <label class="film-resolution"><select id="film-resolution" aria-label="视频清晰度"><option value="light">480p</option><option value="mobile" selected>720p</option><option value="hd">1080p</option><option value="4k">4K</option></select></label>
@@ -129,7 +130,7 @@
       <summary>视频文件</summary>
       <div class="film-file-links">
         <a href="assets/openmenubar-wallpaper-4k.mp4?v=a91fa8672d" download="OpenMenuBar-Wallpaper-4K90.mp4">下载 4K 视频 <span aria-hidden="true">↓</span></a>
-        <a href="assets/openmenubar-wallpaper-480p.mp4?v=930f742497">省流播放 · 480p</a>
+        <a href="film-lite.html">备用播放 · 480p</a>
         <a href="assets/openmenubar-wallpaper-hd.mp4?v=0477f7392b">直接播放 1080p <span aria-hidden="true">↗</span></a>
       </div>
       <details id="full-film" class="film-archive">
@@ -207,4 +208,4 @@ document.querySelectorAll('[data-dock]').forEach(rail=>{
 
 document.querySelector('.copy-email').addEventListener('click',async()=>{const status=document.querySelector('.copy-status');try{await navigator.clipboard.writeText('shineanl@icloud.com');status.textContent='邮箱已复制：shineanl@icloud.com';}catch{status.textContent='请选中并复制邮箱：shineanl@icloud.com';}});
 </script>
-<script src="assets/film-player.js?v=a0f5d1f8d5"></script><script src="assets/orb-demo.js?v=clean1"></script><script src="assets/moon-rail.js?v=4876f16afd"></script><script src="assets/moon-preview.js?v=2d7874aa7e"></script><script src="assets/scroll-rendering.js?v=13"></script><script>if(new URLSearchParams(location.search).get("video-audit")==="1"){const audit=document.createElement("script");audit.src="assets/film-audit.js?v=1";document.head.append(audit);}</script></body></html>
+<script src="assets/film-player.js?v=faq2"></script><script src="assets/orb-demo.js?v=clean1"></script><script src="assets/moon-rail.js?v=4876f16afd"></script><script src="assets/moon-preview.js?v=2d7874aa7e"></script><script src="assets/scroll-rendering.js?v=13"></script><script>if(new URLSearchParams(location.search).get("video-audit")==="1"){const audit=document.createElement("script");audit.src="assets/film-audit.js?v=1";document.head.append(audit);}</script></body></html>

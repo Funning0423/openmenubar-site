@@ -67,9 +67,12 @@ header .brand img { width: 28px; height: 28px; }
   #features .menubar-intro { margin-top: 12px; }
 }
 
-#film-web-fallback[hidden], #lite-load[hidden] { display: none; }
+#film-web-fallback[hidden], #lite-load[hidden], .lite-film-controls[hidden] { display: none; }
 .lite-film { max-width: 860px; padding-block: clamp(40px, 7vw, 86px); }
 .lite-film h1 { margin: 20px 0 12px; font-size: clamp(32px, 6vw, 56px); line-height: 1.12; }
 .lite-film video { width: 100%; aspect-ratio: 16/9; display: block; margin: 24px 0 16px; border-radius: 16px; background: #111; }
 .lite-film-status { margin: 14px 0 0; color: var(--copy); }
 .lite-film-status:empty { margin: 0; }
+
+.lite-film-controls { display: flex; align-items: center; flex-wrap: wrap; gap: 12px 20px; }
+.lite-film-controls select { font: inherit; }

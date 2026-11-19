@@ -2,42 +2,136 @@
   'use strict';
   const video = document.getElementById('lite-video');
   const button = document.getElementById('lite-load');
+  const quality = document.getElementById('lite-quality');
   const status = document.getElementById('lite-status');
-  const mediaPath = 'assets/openmenubar-wallpaper-480p-930f742497.bin';
-  let objectURL;
-  button.hidden = false;
+  const mediaType = 'video/mp4';
+  const codec = `${mediaType}; codecs="avc1.64002a,mp4a.40.2"`;
+  const directory = 'assets/wallpaper-hd-45bdae6ae4/';
+  const hd = ['init.bin', ...Array.from({length: 26}, (_, i) => `${String(i + 1).padStart(2, '0')}.bin`)]
+    .map(file => directory + file);
+  const light = 'assets/openmenubar-wallpaper-480p-930f742497.bin';
+  let active;
+  button.parentElement.hidden = false;
+
+  async function fetchFile(path, signal) {
+    const request = new AbortController();
+    const abort = () => request.abort();
+    if (signal.aborted) abort();
+    signal.addEventListener('abort', abort, {once: true});
+    const timer = setTimeout(abort, 45000);
+    try {
+      const response = await fetch(path, {signal: request.signal});
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      return await response.arrayBuffer();
+    } finally {
+      clearTimeout(timer);
+      signal.removeEventListener('abort', abort);
+    }
+  }
+
+  function nextEvent(target, event, signal, action) {
+    return new Promise((resolve, reject) => {
+      const finish = (error) => {
+        clearTimeout(timer);
+        target.removeEventListener(event, success);
+        target.removeEventListener('error', failure);
+        signal.removeEventListener('abort', failure);
+        if (error) reject(error);
+        else resolve();
+      };
+      const success = () => finish();
+      const failure = () => finish(new Error(`Waiting for ${event} failed`));
+      const timer = setTimeout(failure, 9000);
+      if (signal.aborted) { failure(); return; }
+      target.addEventListener(event, success, {once: true});
+      target.addEventListener('error', failure, {once: true});
+      signal.addEventListener('abort', failure, {once: true});
+      try { action(); } catch (error) { finish(error); }
+    });
+  }
+
+  function attach(run, media) {
+    if (run.url) URL.revokeObjectURL(run.url);
+    run.url = URL.createObjectURL(media);
+    video.src = run.url;
+  }
+
+  function play(run) {
+    if (run !== active) return;
+    run.ready = true;
+    button.disabled = false;
+    video.play().then(() => {
+      if (run === active) { button.hidden = true; status.textContent = ''; }
+    }).catch(() => {
+      if (run === active) { button.textContent = '播放短片'; status.textContent = '已载入，点击播放。'; }
+    });
+  }
+
+  async function stream(run, Media, get) {
+    const media = new Media();
+    const {signal} = run.controller;
+    video.disableRemotePlayback = true;
+    await nextEvent(media, 'sourceopen', signal, () => attach(run, media));
+    const buffer = media.addSourceBuffer(codec);
+    for (let i = 0; i < hd.length; i++) {
+      const bytes = await get(hd[i]);
+      if (i + 1 < hd.length) get(hd[i + 1]).catch(() => {});
+      await nextEvent(buffer, 'updateend', signal, () => buffer.appendBuffer(bytes));
+      if (i === 1) play(run);
+    }
+    if (media.readyState === 'open') media.endOfStream();
+  }
+
+  function reset() {
+    if (active) {
+      active.controller.abort();
+      video.pause();
+      video.removeAttribute('src');
+      video.load();
+      if (active.url) URL.revokeObjectURL(active.url);
+      active = undefined;
+    }
+    button.hidden = false;
+    button.disabled = false;
+    button.textContent = '播放短片';
+    status.textContent = '';
+  }
 
   button.addEventListener('click', async () => {
-    if (!objectURL) {
-      button.disabled = true;
-      status.textContent = '正在下载短片…';
-      const controller = new AbortController();
-      const timer = setTimeout(() => controller.abort(), 45000);
-      try {
-        // Fetch the complete file with an ordinary GET before giving it to the media player.
-        const response = await fetch(mediaPath, {signal: controller.signal});
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        objectURL = URL.createObjectURL(new Blob([await response.arrayBuffer()], {type: 'video/mp4'}));
-        video.src = objectURL;
-      } catch {
-        status.textContent = '暂时无法下载，可点击重试。';
-        button.textContent = '重试';
-        return;
-      } finally {
-        clearTimeout(timer);
-        button.disabled = false;
-      }
-    }
-    status.textContent = '';
+    if (active?.ready) { play(active); return; }
+    const run = {controller: new AbortController()};
+    active = run;
+    button.disabled = true;
+    status.textContent = '正在载入短片…';
+    const {signal} = run.controller;
     try {
-      await video.play();
-      button.hidden = true;
+      if (quality.value === 'light') {
+        attach(run, new Blob([await fetchFile(light, signal)], {type: mediaType}));
+        play(run);
+        return;
+      }
+      const cached = new Map();
+      const get = path => {
+        if (!cached.has(path)) cached.set(path, fetchFile(path, signal).catch(error => { cached.delete(path); throw error; }));
+        return cached.get(path);
+      };
+      const Media = [window.MediaSource, window.ManagedMediaSource].find(Type => Type?.isTypeSupported(codec));
+      if (Media) {
+        try { await stream(run, Media, get); return; }
+        catch (error) { if (signal.aborted || run.ready) throw error; }
+      }
+      status.textContent = '正在下载 1080p 短片…';
+      const pieces = [];
+      for (const path of hd) pieces.push(await get(path));
+      attach(run, new Blob(pieces, {type: mediaType}));
+      play(run);
     } catch {
-      button.textContent = '播放短片';
-      status.textContent = '已下载，点击播放。';
+      if (signal.aborted) return;
+      reset();
+      button.textContent = '重试';
+      status.textContent = '短片载入中断。可重试或选择省流版。';
     }
   });
-  window.addEventListener('pagehide', event => {
-    if (!event.persisted && objectURL) URL.revokeObjectURL(objectURL);
-  });
+  quality.addEventListener('change', reset);
+  window.addEventListener('pagehide', event => { if (!event.persisted) reset(); });
 })();

@@ -67,17 +67,35 @@
     });
   }
 
+  async function* orderedParts(get) {
+    const pending = new Map();
+    const fill = index => {
+      for (let i = index; i < Math.min(index + 3, hd.length); i++) {
+        if (pending.has(i)) continue;
+        const request = get(hd[i]);
+        request.catch(() => {});
+        pending.set(i, request);
+      }
+    };
+    for (let i = 0; i < hd.length; i++) {
+      fill(i);
+      const bytes = await pending.get(i);
+      pending.delete(i);
+      fill(i + 1);
+      yield bytes;
+    }
+  }
+
   async function stream(run, Media, get) {
     const media = new Media();
     const {signal} = run.controller;
     video.disableRemotePlayback = true;
     await nextEvent(media, 'sourceopen', signal, () => attach(run, media));
     const buffer = media.addSourceBuffer(codec);
-    for (let i = 0; i < hd.length; i++) {
-      const bytes = await get(hd[i]);
-      if (i + 1 < hd.length) get(hd[i + 1]).catch(() => {});
+    let appended = 0;
+    for await (const bytes of orderedParts(get)) {
       await nextEvent(buffer, 'updateend', signal, () => buffer.appendBuffer(bytes));
-      if (i === 1) play(run);
+      if (++appended === 2) play(run);
     }
     if (media.readyState === 'open') media.endOfStream();
   }
@@ -122,7 +140,7 @@
       }
       status.textContent = '正在下载 1080p 短片…';
       const pieces = [];
-      for (const path of hd) pieces.push(await get(path));
+      for await (const bytes of orderedParts(get)) pieces.push(bytes);
       attach(run, new Blob(pieces, {type: mediaType}));
       play(run);
     } catch {

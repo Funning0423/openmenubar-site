@@ -1,0 +1,77 @@
+name: Verify macOS download
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Release version (e.g. 2.0.4)
+        required: true
+        type: string
+      sha256:
+        description: SHA-256 of the published Apple Silicon DMG
+        required: true
+        type: string
+
+permissions: {}
+
+jobs:
+  install:
+    runs-on: macos-26
+    timeout-minutes: 8
+    env:
+      VERSION: ${{ inputs.version }}
+      EXPECTED_SHA256: ${{ inputs.sha256 }}
+    steps:
+      - name: Fetch and verify the public release
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          [[ "$EXPECTED_SHA256" =~ ^[0-9a-f]{64}$ ]]
+          cd "$RUNNER_TEMP"
+          image="OpenMenubar-$VERSION-arm64.dmg"
+          base="https://github.com/Funning0423/openmenubar-site/releases/download/v$VERSION"
+          for asset in "$image" "$image.sig"; do
+            curl --proto '=https' --proto-redir '=https' --fail --location --retry 3 --silent --show-error "$base/$asset" -o "$asset"
+          done
+          printf '%s  %s\n' "$EXPECTED_SHA256" "$image" | shasum -a 256 -c -
+          cat > verify.swift <<'SWIFT'
+          import CryptoKit
+          import Foundation
+          let arguments = CommandLine.arguments
+          let image = try Data(contentsOf: URL(fileURLWithPath: arguments[1]))
+          let encoded = try String(contentsOfFile: arguments[2], encoding: .utf8)
+          let publicKey = Data(base64Encoded: "gCXP7gLjbDw/D1Lj9wyH6n8ddhmSqbhLopU2UOuY3zk=")!
+          let verifier = try Curve25519.Signing.PublicKey(rawRepresentation: publicKey)
+          guard let signature = Data(base64Encoded: encoded.trimmingCharacters(in: .whitespacesAndNewlines)),
+                verifier.isValidSignature(signature, for: image) else { exit(1) }
+          print("Release Ed25519 signature verified")
+          SWIFT
+          swift verify.swift "$image" "$image.sig"
+          hdiutil verify "$image"
+      - name: Install in Applications and exercise Launch Services
+        shell: bash
+        run: |
+          set -euo pipefail
+          sw_vers
+          test "$(uname -m)" = arm64
+          cd "$RUNNER_TEMP"
+          mkdir release-volume
+          hdiutil attach -readonly -nobrowse -mountpoint "$PWD/release-volume" "OpenMenubar-$VERSION-arm64.dmg"
+          trap 'hdiutil detach "$PWD/release-volume"' EXIT
+          test "$(readlink release-volume/Applications)" = /Applications
+          app=/Applications/OpenMenubar.app
+          test ! -e "$app"
+          ditto release-volume/OpenMenubar.app "$app"
+          codesign --verify --deep --strict --verbose=2 "$app"
+          test "$(lipo -archs "$app/Contents/MacOS/OpenMenubar")" = arm64
+          test "$(/usr/libexec/PlistBuddy -c 'Print CFBundleIdentifier' "$app/Contents/Info.plist")" = com.openmenubar
+          test "$(/usr/libexec/PlistBuddy -c 'Print CFBundleShortVersionString' "$app/Contents/Info.plist")" = "$VERSION"
+          if spctl --assess --type execute --verbose=2 "$app"; then
+            echo "Gatekeeper accepted the app." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "Gatekeeper rejected the app. A browser download may require manual approval on the recipient's Mac." >> "$GITHUB_STEP_SUMMARY"
+          fi
+          open "$app"
+          sleep 5
+          pgrep -f '^/Applications/OpenMenubar\.app/Contents/MacOS/OpenMenubar( |$)'
+          echo "Verified the public DMG and launched its installed app on $(sw_vers -productVersion) arm64. The runner fetched the DMG with curl. Browser first-open approval is a separate check." >> "$GITHUB_STEP_SUMMARY"

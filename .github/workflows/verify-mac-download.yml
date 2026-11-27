@@ -74,4 +74,16 @@ jobs:
           open "$app"
           sleep 5
           pgrep -f '^/Applications/OpenMenubar\.app/Contents/MacOS/OpenMenubar( |$)'
+          swift - <<'SWIFT'
+          import AppKit
+          let target = NSRunningApplication.runningApplications(withBundleIdentifier: "com.openmenubar")
+              .first { $0.bundleURL?.path == "/Applications/OpenMenubar.app" }
+          guard let target, target.terminate() else { exit(1) }
+          let deadline = Date().addingTimeInterval(10)
+          while !target.isTerminated && Date() < deadline {
+              RunLoop.current.run(until: Date().addingTimeInterval(0.1))
+          }
+          guard target.isTerminated else { exit(1) }
+          print("Installed app quit normally")
+          SWIFT
           echo "Verified the public DMG and launched its installed app on $(sw_vers -productVersion) arm64. The runner fetched the DMG with curl. Browser first-open approval is a separate check." >> "$GITHUB_STEP_SUMMARY"
